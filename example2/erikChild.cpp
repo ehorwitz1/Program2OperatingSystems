@@ -13,9 +13,8 @@ class PCB{
   int pid = 0;
   int value = 0;
   int runTime = 0;
-  int start_time =0;
-  int run_tme = 0;
-  int cpu_time = 0;
+  int start_time;
+  int cpu_time;
 };
 
 int main(int argc, char *argv[]) {
@@ -23,18 +22,22 @@ int main(int argc, char *argv[]) {
   int mcpipe2[2], num;
   char chr;
 
-  vector<PCB> tableVector;
-  QueueArray<PCB> BlockedState;
-  QueueArray<PCB> ReadyState;
+  vector<PCB> pcbTable;
 
+  QueueArray<PCB> BlockedState;
+  /*
+  r0:
+  r1:
+  r2:
+  */
+
+  QueueArray<PCB> ReadyState;
 
   PCB cpu;
 
   char butt;
 
-  int Sarray[3];
-
-  int Time = 0;
+  int qTime = 0;
 
   QueueArray<PCB> Qarray(20);
     
@@ -57,10 +60,12 @@ int main(int argc, char *argv[]) {
       cout<<"S values here\n";
       PCB newTable;
 
+      newTable.start_time = qTime;
+      cout<<"Startime is: " << newTable.start_time << "\n";
       for (int r = 0;r < 3; r++) { 
         read(mcpipe2[0], (int *)&i, sizeof(i));
-        Sarray[r] = i;
-        cout <<"Sarray at "<< r << "is "<< Sarray[r] << "\n";
+
+       // newTable.start_time = qTime;
         switch(r)
         {
             case 0:
@@ -76,28 +81,36 @@ int main(int argc, char *argv[]) {
             cout<<"runTime is: " << newTable.runTime << "\n";
             break;
         } 
-
       }
-      tableVector.push_back(newTable);
-      //Qarray.Enqueue(newTable, newTable.pid);
+
+      pcbTable.push_back(newTable);
+
     } else if (chr =='B') {
-      cout <<"Wrt: Bye!\n";
+      read(mcpipe2[0], (int *)&i, sizeof(i));
+      int rid = i;
+      cout <<"Block current process to resource ID: " << rid<<"\n";
+
+      BlockedState.Enqueue(cpu, rid);
+
     } else if (chr == 'Q'){
-        Time++;
-        cout<<"Time is: " << Time<<"\n";
+        qTime++;
+        cout<<"qTimeis: " << qTime <<"\n";
+
     }else if (chr == 'V'){
         cout<<"Printing characteristics\n";
-        //sTable printTable = tableVector[0];
-        PCB *printTable = Qarray.Qstate(0);
-        cout<<"Pid is: " << tableVector[0].pid<<"\n";
-        cout<<"Value is: " << tableVector[0].value<<"\n";
-        cout<<"RunTime is: " << tableVector[0].runTime<<"\n";
+
+        cout<<"Pid is: " << pcbTable[0].pid<<"\n";
+        cout<<"Value is: " << pcbTable[0].value<<"\n";
+        cout<<"RunTime is: " << pcbTable[0].runTime<<"\n";
         
     } else if (chr == 'C') {
-      //read a number from the pipe
+
+      //Read the command to execute
       read(mcpipe2[0], (char *)&chr, sizeof(char));
       char command = chr;
       cout<<"This is Command "<< command <<"\n";
+
+      //Read in the value to change the current process
       read(mcpipe2[0], (int *)&i, sizeof(i));
       int num = i;
       cout<<"This is Num "<< num <<"\n";
@@ -121,7 +134,7 @@ int main(int argc, char *argv[]) {
             cout<<"Divided: " << num << "\n";
             break;
         } 
-
+      qTime++;
 
       
     }

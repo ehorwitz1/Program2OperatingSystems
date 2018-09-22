@@ -73,22 +73,21 @@ main()
         write(mcpipe1[WRITE_END], (int *)&i, sizeof(int));
         }
     }
+    //Command: Char for command, int for value
      if (chr == 'C') {
-        //for(int w = 0; w < 2; w++)
-        //{
-        //cin >>i;
-        //cout <<"Master Writing "<<i<<endl;
-      //write to the child process 
         cin >> chr;
         write(mcpipe1[WRITE_END], (char *)&chr, sizeof(char));
         cin >> i;
         write(mcpipe1[WRITE_END], (int *)&i, sizeof(int));
-        //}
+    }
+    if (chr == 'B') {
+        cin >> i;
+        write(mcpipe1[WRITE_END], (int *)&i, sizeof(int));
     }
     cin >>chr; //Reading next line
 
     //sleep for 1 second
-    sleep (1);
+    sleep (2);
   }
   //write out the last one, which is a P, so the wrt process receives the P and exits
   write(mcpipe1[WRITE_END], (char *)&chr, sizeof(char));
