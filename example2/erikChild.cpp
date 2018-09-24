@@ -4,10 +4,12 @@
 #include <iostream>
 #include <vector>
 #include "queue_array.h"
+#include <math.h>
 using namespace std;
  
 /* wrt.cpp file */
 
+/*
 class PCB{
   public:
   int pid = 0;
@@ -15,32 +17,72 @@ class PCB{
   int runTime = 0;
   int start_time;
   int cpu_time;
+  int quantum;
+  int priority;
 };
+*/
+
+vector<PCB> pcbTable;
+PCB cpu;  
+int qTime = 0;
+QueueArray<PCB> BlockedState;
+QueueArray<PCB> ReadyState;
+QueueArray<PCB> Qarray(20);
+
+int TotalDone = 0;
+
+
+void callScheduler()
+{
+  //If the cpu is empty
+  if(cpu.pid == 0)
+  {
+    cpu = ReadyState.Dequeue();
+    cpu.quantum = pow(2, cpu.priority);
+  }
+  else
+  {
+    //If process used its quantum
+    if(cpu.quantum == 0)
+    {
+      if(cpu.cpu_time == cpu.runTime)
+      {
+        //Process is forever done
+        cout<<"Process is done forever, load new process"<<endl;
+        TotalDone++;
+        cpu = ReadyState.Dequeue();
+      }
+      else
+      { //Increase priority of process
+        if(cpu.priority < 3)
+        {
+        cpu.priority++;
+        }
+
+        PCB newProcess = cpu;
+        newProcess.quantum =  pow(2, newProcess.priority);
+        ReadyState.Enqueue(newProcess, newProcess.priority);
+        
+        
+      }
+    }
+  }
+}
+
+
+
 
 int main(int argc, char *argv[]) {
   int i, max = 100;
   int mcpipe2[2], num;
   char chr;
 
-  vector<PCB> pcbTable;
-
-  QueueArray<PCB> BlockedState;
   /*
   r0:
   r1:
   r2:
   */
 
-  QueueArray<PCB> ReadyState;
-
-  PCB cpu;
-
-  char butt;
-
-  int qTime = 0;
-
-  QueueArray<PCB> Qarray(20);
-    
   //convert the parameters into the address for the pipe
   mcpipe2[0] = atoi(argv[1]);
   mcpipe2[1] = atoi(argv[2]);
@@ -84,6 +126,9 @@ int main(int argc, char *argv[]) {
       }
 
       pcbTable.push_back(newTable);
+      ReadyState.Enqueue(newTable, 0);
+      callScheduler();
+      cout<<"Quantum: " << cpu.quantum << endl;
 
     } else if (chr =='B') {
       read(mcpipe2[0], (int *)&i, sizeof(i));
@@ -94,7 +139,15 @@ int main(int argc, char *argv[]) {
 
     } else if (chr == 'Q'){
         qTime++;
+
+        if(cpu.pid!=0)
+        {
+          cpu.cpu_time++;
+          cpu.quantum--;
+        }
+
         cout<<"qTimeis: " << qTime <<"\n";
+        callScheduler();
 
     }else if (chr == 'V'){
         cout<<"Printing characteristics\n";
@@ -104,7 +157,7 @@ int main(int argc, char *argv[]) {
         cout<<"RunTime is: " << pcbTable[0].runTime<<"\n";
         
     } else if (chr == 'C') {
-
+      
       //Read the command to execute
       read(mcpipe2[0], (char *)&chr, sizeof(char));
       char command = chr;
@@ -135,7 +188,9 @@ int main(int argc, char *argv[]) {
             break;
         } 
       qTime++;
-
+      cpu.cpu_time++;
+      cpu.quantum--;
+      callScheduler();
       
     }
     
@@ -149,4 +204,6 @@ int main(int argc, char *argv[]) {
   // note the number can not greater then 255.
   return 2;
 }
+
+
 

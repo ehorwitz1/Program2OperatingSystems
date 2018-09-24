@@ -24,6 +24,29 @@ using namespace std;
 
 //Talked with Jacob Claytor
 
+class PCB{
+ 
+ public:
+   PCB(){
+     pid = 0;
+     value = 0;
+     runTime = 0;
+     start_time = 0;
+     cpu_time = 0;
+     priority = 0;
+     quantum = 0;
+   }
+
+   int pid;
+   int value;
+   int runTime;
+   int start_time;
+   int cpu_time;
+   int quantum;
+   int priority;
+
+};
+
 
 template <class etype>
 class QueueArray
@@ -51,7 +74,8 @@ class QueueArray
           return temp;
         }
       }
-      return 0;
+      //return 0;
+      return PCB();
     }
 
     int Enqueue(const etype &item,const int index)
