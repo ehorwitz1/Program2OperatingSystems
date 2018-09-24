@@ -25,9 +25,13 @@ class PCB{
 vector<PCB> pcbTable;
 PCB cpu;  
 int qTime = 0;
-QueueArray<PCB> BlockedState;
-QueueArray<PCB> ReadyState;
-QueueArray<PCB> Qarray(20);
+//QueueArray<PCB> BlockedState(100);
+QueueArray<PCB> rid0(1);
+QueueArray<PCB> rid1(1);
+QueueArray<PCB> rid2(1);
+
+QueueArray<PCB> ReadyState(100);
+
 
 int TotalDone = 0;
 
@@ -37,14 +41,12 @@ void callScheduler()
   //If the cpu is empty
   if(cpu.pid == 0)
   {
+    cout<<"CPU IS EMPTY\n";
     cpu = ReadyState.Dequeue();
     cpu.quantum = pow(2, cpu.priority);
   }
-  else
-  {
-    //If process used its quantum
-    if(cpu.quantum == 0)
-    {
+  else if(cpu.quantum == 0) //If process used its quantum
+    { 
       if(cpu.cpu_time == cpu.runTime)
       {
         //Process is forever done
@@ -66,10 +68,27 @@ void callScheduler()
         
       }
     }
-  }
+  else if(cpu.cpu_time == cpu.runTime)
+  {
+    //Process is forever done
+      cout<<"Process is done forever, load new process"<<endl;
+      TotalDone++;
+      cpu = ReadyState.Dequeue();
+    }
+  
 }
 
-
+void printCommand()
+{
+  printf("***********************************************************************\n");
+  printf("The current system state is as follows:\n");
+  printf("***********************************************************************\n");
+  printf("CURRENT TIME: %d \n", qTime);
+  printf("RUNNING PROCESS:\n");
+  printf("PID\tPriority\tValue\tStart Time\tTotal CPU Time\n");
+  printf("%d\t %d\t\t %d\t\t %d\t\t %d\t\t\n", cpu.pid, cpu.priority, cpu.value, cpu.start_time, cpu.cpu_time);
+  
+}
 
 
 int main(int argc, char *argv[]) {
@@ -90,7 +109,7 @@ int main(int argc, char *argv[]) {
   //read a character from the pipe
   read(mcpipe2[0], &chr, sizeof(char));
 
-  while (chr != 'P') {
+  while (chr != 'T') {
     if (chr == 'H') {
       //read a number from the pipe
       read(mcpipe2[0], (int *)&i, sizeof(i));
@@ -131,11 +150,54 @@ int main(int argc, char *argv[]) {
       cout<<"Quantum: " << cpu.quantum << endl;
 
     } else if (chr =='B') {
+      //Do we change the priority when we block
       read(mcpipe2[0], (int *)&i, sizeof(i));
       int rid = i;
       cout <<"Block current process to resource ID: " << rid<<"\n";
+        PCB blockedProcess = cpu;
+        cpu = PCB();
 
-      BlockedState.Enqueue(cpu, rid);
+        switch(rid)
+        {
+            case 0:
+            rid0.Enqueue(blockedProcess, 0);
+            break;
+            case 1:
+            rid1.Enque(blockedProcess, 0);
+            break;
+            case 2:
+            rid2.Enque(blockedProcess, 0);
+            break;
+        } 
+        callScheduler();
+
+      //BlockedState.Enqueue(cpu, rid);
+
+    }else if (chr =='U') {
+      //Do we change the priority when we block
+      read(mcpipe2[0], (int *)&i, sizeof(i));
+      int rid = i;
+      cout <<"Unblock current process to resource ID: " << rid<<"\n";
+
+        PCB unblockedProcess;
+        cpu = PCB();
+
+        switch(rid)
+        {
+            case 0:
+            unblockedProcess = rid0.Dequeue();
+            ReadyState.Enqueue(unblockedProcess, unblockedProcess.priority);
+            break;
+            case 1:
+            unblockedProcess = rid0.Dequeue();
+            ReadyState.Enqueue(unblockedProcess, unblockedProcess.priority);
+            break;
+            case 2:
+            unblockedProcess = rid0.Dequeue();
+            ReadyState.Enqueue(unblockedProcess, unblockedProcess.priority);
+            break;
+        } 
+        callScheduler();
 
     } else if (chr == 'Q'){
         qTime++;
@@ -149,12 +211,15 @@ int main(int argc, char *argv[]) {
         cout<<"qTimeis: " << qTime <<"\n";
         callScheduler();
 
-    }else if (chr == 'V'){
+    }else if (chr == 'P'){
+      /*
         cout<<"Printing characteristics\n";
 
         cout<<"Pid is: " << pcbTable[0].pid<<"\n";
         cout<<"Value is: " << pcbTable[0].value<<"\n";
         cout<<"RunTime is: " << pcbTable[0].runTime<<"\n";
+      */
+        printCommand();
         
     } else if (chr == 'C') {
       

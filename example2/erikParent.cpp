@@ -54,9 +54,10 @@ main()
 
   //read in a single character
   cin >>chr;
-  while (chr!='P') {
+  while (chr!='T') {
     cout<<"Master: writing "<<chr<<endl;
     //write to the child process 
+
     write(mcpipe1[WRITE_END], (char *)&chr, sizeof(char));
     if (chr == 'H') {
       cin >>i;
@@ -64,6 +65,7 @@ main()
       //write to the child process 
       write(mcpipe1[WRITE_END], (int *)&i, sizeof(int));
     }
+
     if (chr == 'S') {
         for(int w = 0; w < 3; w++)
         {
@@ -73,6 +75,7 @@ main()
         write(mcpipe1[WRITE_END], (int *)&i, sizeof(int));
         }
     }
+
     //Command: Char for command, int for value
      if (chr == 'C') {
         cin >> chr;
@@ -80,10 +83,17 @@ main()
         cin >> i;
         write(mcpipe1[WRITE_END], (int *)&i, sizeof(int));
     }
+
     if (chr == 'B') {
         cin >> i;
         write(mcpipe1[WRITE_END], (int *)&i, sizeof(int));
     }
+
+    if (chr == 'U') {
+        cin >> i;
+        write(mcpipe1[WRITE_END], (int *)&i, sizeof(int));
+    }
+
     cin >>chr; //Reading next line
 
     //sleep for 1 second
